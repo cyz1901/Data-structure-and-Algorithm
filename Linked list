@@ -1,0 +1,140 @@
+#include <stdio.h>
+#include <stdlib.h>//提供malloc,realloc,free,exit原型
+#include <time.h> 
+#define OK 1
+#define ERROR 0
+typedef int Status; //定义状态码
+typedef int ElemType; //数据元素类型
+typedef struct LNode  //单链表结构体
+{
+	ElemType data;
+	struct LNode *next;
+}LNode, *LinkList;//指向表结点的指针
+void CreatList(LinkList *L, int n);//头插法建立单链
+Status GetElem_L(LinkList L, int i, ElemType *e);//单链表
+Status ListInsert_L(LinkList *L, int i, ElemType e);//单链表插入操作
+Status ListDelete_L(LinkList *L, int i, ElemType *e);//单链表删除操作
+Status ClearList_L(LinkList *L); //置空单链表L,头结点保留
+void PrintList_L(LinkList L);   //打印单链表,也是遍历
+void CreatList(LinkList *L, int n) {
+	LinkList p;
+	srand(time(0));   // 初始化随机数种子
+	*L = (LinkList)malloc(sizeof(LNode));//为头结点分配储存空间
+	(*L)->next = NULL;//头结点指向空
+	for (int i = n; i > 0; --i) {
+		p = (LinkList)malloc(sizeof(LNode));//生成新节点
+        p->data = rand()%100+1;//为每个节点填充随机数
+		p->next = (*L)->next;//将头结点指向给予p
+		(*L)->next = p;//让头指针指向p
+	}
+}
+Status GetElem_L(LinkList L, int i, ElemType *e) {
+	LinkList p;
+	int j;
+	p = L->next;
+	j = 1;
+	while (p&&j < i) {
+		p = p->next;//递归向后一个结点查找
+		j++;
+	}
+	if (!p || j > i)
+	{
+		return ERROR;
+	}
+	*e = p->data;//p中数据赋值给e的指针
+	return OK;
+}
+/* 初始条件：顺序线性表L已存在，1<=i<=ListLength(L) */
+/* 操作结果：在L中第i个位置之前插入新的数据元素e，L的长度加1 */
+Status ListInsert_L(LinkList *L, int i, ElemType e) {
+	LinkList p,s;
+    int j;
+	p = *L;
+	j = 0;
+	while (p&&j < i - 1) {
+		p = p->next;
+		j++;
+	}
+	if (!p || j > i - 1)
+	{
+		return ERROR;
+	}
+	s = (LinkList)malloc(sizeof(LNode));//为新节点开辟内存空间
+	s->data = e;//数据域赋值
+	s->next = p->next;
+	p->next = s;
+	return OK;
+}
+/* 初始条件：顺序线性表L已存在，1<=i<=ListLength(L) */
+/* 操作结果：删除L的第i个数据元素，并用e返回其值，L的长度-1 */
+Status ListDelete_L(LinkList *L, int i, ElemType *e) {
+    LinkList p,q;
+    int j;
+	p = *L;
+    j = 0;
+	while (p&&j < i - 1) {
+		p = p->next;
+		++j;
+	}
+	if (!p || j > i - 1)
+	{
+		return ERROR;
+	}
+	q = p->next;
+	p->next = q->next;
+	*e = q->data;
+	free(q);
+	return OK;
+}
+void PrintList_L(LinkList L)//打印单链表,也是遍历
+{
+	LinkList p;
+	if(L) p=L->next;
+
+	while(p)
+	{
+		printf("%d,",p->data);
+		p=p->next;
+	}
+	printf("。\n");
+
+}
+Status ClearList_L(LinkList *L)//置空单链表L,头结点保留
+{
+    LinkList p, q;
+
+    p = (*L)->next;
+
+    while(p)
+    {
+        q = p->next;
+        free(p);
+        p = q;
+    }
+
+    (*L)->next = NULL;
+
+    return OK;
+}
+
+void main()
+{
+	LinkList L;	//声明结构体L
+	ElemType e;
+	printf("创建列表函数测试:\n");
+	CreatList(&L,10);//创建一个含有十个节点的链表
+	PrintList_L(L);
+	GetElem_L(L,5,&e);
+	printf("%d\n",e);
+	ListDelete_L(&L,5,&e);
+	GetElem_L(L,5,&e);
+	printf("%d\n",e);
+	ListInsert_L(&L,5,100);
+	GetElem_L(L,5,&e);
+	printf("%d\n",e);
+	PrintList_L(L);
+	ClearList_L(&L);//清空链表
+	PrintList_L(L);
+	
+
+}

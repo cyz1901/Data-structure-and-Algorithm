@@ -1,88 +1,51 @@
-#include <stdio.h>
-#include <stdlib.h>//提供malloc,realloc,free,exit原型
-#include <time.h>
-#define STACK_INIT_SIZE 100
-#define STACKINCREMENT 10
+#include<stdio.h>
+#include<stdlib.h>
+#include<malloc.h>
 #define OK 1
 #define ERROR 0
-typedef int Status; //定义状态码
+typedef int Status;
 typedef char SElemType;
 typedef struct SNode{
 	SElemType data;
-	struct SNode  *next;
-}SNode,*LinkStackPtr;
-typedef struct LinkStack
-{
-    LinkStackPtr top;
-    LinkStackPtr base;
-    int stacksize;
-}SqStack;
-Status InitStack(SqStack *S);
-Status DestroyStack(SqStack *S);
-Status ClearStack(SqStack *S);
-Status StackEmpty(SqStack *S);
-Status Gettop(SqStack *S,SElemType e);
-Status Pop(SqStack *S,SElemType *e);
-Status Push(SqStack *S,SElemType e);
-Status Match(char a,char b);
-Status InitStack(SqStack *S){
-    S->top=(LinkStackPtr)malloc(sizeof(SNode));
-    if(S->top==NULL){
-        return ERROR;
-    }
-    S->base=S->top;
-    S->top->next=NULL;
-    return OK;
-}
-Status DestroyStack(SqStack *S){
-    ClearStack(S);
-    free(S);
-    return OK;
+	struct SNode *next;
+}SNode,*pNode;
+typedef struct{
+	pNode top;
+	Status stacksize;
+}SqStack,*pSqStack;
 
+void InitStack(pSqStack s){
+	s->top=NULL;
+	s->stacksize=0;
 }
-Status ClearStack(SqStack *S){
-    LinkStackPtr p;
-    p= NULL;
-    while(S->top!=S->base){
-        p = S->top;
-        S->top=S->top->next;
-        free(p);
-    }
+Status StackEmpty(pSqStack s){
+	if(s->top==NULL){
+	 return 1;
+	}
+	else{
+	return 0;
+	}
 }
-Status StackEmpty(SqStack *S){
-    if (S->top==S->base)
-        return OK;
-    else
-        return ERROR;
+void Push(pSqStack s,SElemType a){
+pNode p=(pNode)malloc(sizeof(SNode));
+p->data=a;
+p->next=s->top;
+s->top=p;
+s->stacksize++;
+}
 
+Status Pop(pSqStack s){
+	pNode p=s->top;
+	Status a=p->data;
+	s->top=p->next;
+	s->stacksize--;
+	free(p);
+	return a;
 }
-Status Pop(SqStack *S,SElemType *e){
-    LinkStackPtr p;
-    p=(LinkStackPtr)malloc(sizeof(SNode));
-    if(p==NULL){
-        return ERROR;
-    }
-    p->data=*e;
-    p->next=S->top;
-    S->top=p;
-    return OK;
+SElemType Gettop(pSqStack s){
+	return s->top->data;
+}
 
-}
-Status Push(SqStack *S,SElemType e){
-    LinkStackPtr p;
-    if(S->top==S->base)
-        return ERROR;
-    e=S->top->data;
-    S->top=S->top->next;//栈顶指针指向下一个节点
-    return OK;
-}
-Status Gettop(SqStack *S,SElemType e){
-    if (S->top==NULL){
-        return ERROR;
-    }
-    e=S->top->data;
-    return OK;
-}
 Status Match(char a,char b){
     if(a+1==b||a+2==b)
         return OK;
@@ -91,7 +54,6 @@ Status Match(char a,char b){
 }
 int main(){
     SqStack S;
-    char ch;
     char str[10000];
     int i;
     InitStack(&S);
@@ -106,24 +68,23 @@ int main(){
             case')':
             case']':
                 if (StackEmpty(&S)){
-                    printf("不匹配");
+                    printf("no");
                     return 0;
                 }
                 else{
-                Gettop(&S,ch);
-					if (Match(ch,str[i]))
-						Pop(&S,&ch);
+					if (Match(Gettop(&S),str[i]))
+						Pop(&S);
 					else{
-						printf("不匹配\n");
+						printf("no\n");
 						return 0;
                         }
 					}
         }
     }
     if (StackEmpty(&S))
-		printf("匹配\n");
+		printf("yes\n");
 	else
-		printf("不匹配\n");
+		printf("no\n");
 	return 0;
 
 }

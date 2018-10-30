@@ -1,0 +1,90 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#define OK 1
+#define ERROR 0
+typedef int Status;
+typedef int TElemType;
+typedef struct TNode
+{
+	TElemType data;
+	struct TNode *lchild ,*rchild;
+}TNode;
+Status CreateBitTree(TNode **T){
+   int ch;
+    scanf("%d",&ch);
+    if (ch == -1)
+    {
+        *T = NULL;
+        return ERROR;
+    }
+    else
+    {
+        *T = (TNode *)malloc(sizeof(TNode));
+        (*T)->data = ch;
+        printf("输入%d的左子节点：",ch);
+        CreateBitTree(&((*T)->lchild));
+        printf("输入%d的右子节点：",ch);
+        CreateBitTree((&(*T)->rchild));
+    }
+
+    return OK;
+
+}
+void PrOrderTraverse(TNode *T,Status (* PrintfElement)(TElemType e)){
+   if (T){
+      PrintfElement(T->data);
+      PrOrderTraverse(T->lchild,PrintfElement);
+      PrOrderTraverse(T->rchild,PrintfElement);
+
+   }
+}
+void InOrderTraverse(TNode *T,Status (* PrintfElement)(TElemType e)){
+   if (T){
+   InOrderTraverse(T->lchild,PrintfElement);
+   PrintfElement(T->data);
+   InOrderTraverse(T->rchild,PrintfElement);
+
+   }
+}
+void PostOrderTraverse(TNode *T,Status (* PrintfElement)(TElemType e)){
+   if (T){
+   PostOrderTraverse(T->lchild,PrintfElement);
+   PostOrderTraverse(T->rchild,PrintfElement);
+   PrintfElement(T->data);
+   }
+}
+Status LevelOrderTraverse(TNode *T){
+   Status deep;
+   if(T){
+      Status leftdeep=LevelOrderTraverse(T->lchild);
+      Status rightdeep=LevelOrderTraverse(T->rchild);
+      deep = leftdeep?rightdeep+1:leftdeep+1;
+   }
+   return deep;
+}
+Status PrintfElement(TElemType e){
+   printf("%d",e);
+   return OK;
+}
+int main(){
+    TNode *T;
+    Status depth = 0;
+    printf("请输入第一个节点的值，-1表示没有叶节点：\n");
+    CreateBitTree(&T);
+
+    printf("先序遍历二叉树：");
+    PrOrderTraverse(T,PrintfElement);
+    printf("\n");
+
+    printf("中序遍历二叉树：");
+    InOrderTraverse(T,PrintfElement);
+    printf("\n");
+
+    printf("后续遍历二叉树：");
+    PostOrderTraverse(T,PrintfElement);
+    printf("\n");
+
+    depth = LevelOrderTraverse(T);
+    printf("树的深度为：%d\n",depth);
+}

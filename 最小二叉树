@@ -1,0 +1,117 @@
+#include<stdio.h>
+
+#define MAX_VERTAX_SIZE 20
+#define INFINITE    65535
+#define OK         1
+#define ERROR         0
+
+//图的邻接矩阵表示的结构定义
+typedef int Status;
+typedef char VertaxElemType;
+typedef struct GraphAM{
+    VertaxElemType VertaxArray[MAX_VERTAX_SIZE];
+    int AdjacencyMatrix[MAX_VERTAX_SIZE][MAX_VERTAX_SIZE];
+    int vertaxNum;
+    int eageNum;
+}GraphAM;
+
+//用于Prim算法的辅助结构:
+typedef struct MinCostEage{
+    VertaxElemType vertax;
+    int lowCost;
+}MinCostEage;
+
+int LocateVertax(GraphAM G, VertaxElemType c){
+    int i;
+    for( i = 0; i < G.vertaxNum; i++ ){
+        if( c == G.VertaxArray[i] )
+            return i;
+    }
+    return -1;
+}
+Status CreateUDG(GraphAM* G){
+    int i,j,index_v,index_w, weight;
+    VertaxElemType v,w;
+    printf("  Greate UndiGraph with Cost\n");
+    printf("Please enter the number of Vertax and Eage:");
+    scanf("%d %d%*c", &(G->vertaxNum), &(G->eageNum));
+
+    printf("ok, please enter the value of the vertaxes:\n");
+    for( i = 0; i < G->vertaxNum; i++ ){
+        scanf("%c%*c", &(G->VertaxArray[i]));
+    }
+    for( i = 0; i < G->vertaxNum; i++ )
+        for( j = 0; j < G->vertaxNum; j++ )
+            G->AdjacencyMatrix[i][j] = INFINITE;
+    for( i = 0; i < G->eageNum; i++ ){
+        printf("ok,please enter the two Vertax and Wight of eage %d,\nNote:Seperated by Space: ", i+1);
+        scanf("%c %c %d%*c", &v, &w, &weight);
+        if( LocateVertax(*G, v) != -1 )
+            index_v = LocateVertax(*G, v);
+        else
+            return ERROR;
+        if( LocateVertax(*G, w) != -1 )
+            index_w = LocateVertax(*G, w);
+        else
+            return ERROR;
+        G->AdjacencyMatrix[index_v][index_w] = G->AdjacencyMatrix[index_w][index_v] = weight;
+    }
+    return OK;
+}
+void PrintAdjacencyMatrix(GraphAM G){
+    printf("Show the Adjacency Matrix of Graph('#' repersents infinite)\n");
+    int i,j;
+    for( i = 0; i < G.vertaxNum; i++ ){
+        for( j = 0; j< G.vertaxNum; j++ ){
+            if( G.AdjacencyMatrix[i][j] != INFINITE )
+                printf("%5d", G.AdjacencyMatrix[i][j]);
+            else
+                printf("    #");
+        }
+        printf("\n\n");
+    }
+}
+//求图G的最小生成树，从顶点v开始
+Status Prim(GraphAM G, VertaxElemType v){
+    int i,index_v,min,min_index,j;
+    index_v = LocateVertax(G, v);                
+    MinCostEage minCost[MAX_VERTAX_SIZE];                //数组的下标隐含是第几个顶点
+    for( i = 0; i < G.vertaxNum; i++ ){        
+        minCost[i].lowCost = G.AdjacencyMatrix[index_v][i];     //初始化数组为起始顶点的AdjacencyMatrix[起始顶点]信息
+        minCost[i].vertax = v;                        //MST中的哪个顶点与数外有本数组元素中的lowCost值
+    }
+    minCost[index_v].lowCost = 0;                    //已经在MST中的标志，使得没有机会参加数组中lowCost的选取
+    printf("MST(Minimum Cost Spinning Tree):\n");
+    for( i = 1; i < G.vertaxNum; i++ ){
+        for( j = 0; j < G.vertaxNum; j++ ){            //找第一个非0的作为min，为了避免第一个是0
+            if( minCost[j].lowCost != 0 ){
+                min = minCost[j].lowCost;
+                min_index = j;
+                break;
+            }
+        }
+        for( j = 0; j < G.vertaxNum; j++ ){            //寻找该数组中的当前的最小权值
+            if( minCost[j].lowCost > 0 && minCost[j].lowCost < min ){
+                min = minCost[j].lowCost;
+                min_index = j;
+            }
+        }
+        printf("(%c, %c)\t", minCost[min_index].vertax, G.VertaxArray[min_index]);//数组的下标存储了第二个%c的需要的信息，
+                                              //vertax域提供了第一个%c需要的信息
+        minCost[min_index].lowCost = 0;
+        for( j = 0; j < G.vertaxNum; j++ ){
+            if( G.AdjacencyMatrix[min_index][j] < minCost[j].lowCost ){
+                minCost[j].lowCost = G.AdjacencyMatrix[min_index][j];
+                minCost[j].vertax = G.VertaxArray[min_index];
+            }
+        }
+    }
+}
+
+int main(){
+    GraphAM G;
+    CreateUDG(&G);
+    PrintAdjacencyMatrix(G);
+    Prim(G, 'a');
+    return 0;
+}

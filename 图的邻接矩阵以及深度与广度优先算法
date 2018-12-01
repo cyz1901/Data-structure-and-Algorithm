@@ -1,0 +1,196 @@
+#include"stdio.h"
+#include"stdlib.h"
+//图的邻接矩阵储存结构
+typedef char elemtype;
+#define maxsize 10
+#define queuesize 100
+//边结点的类型定义
+typedef struct ArcNode
+{
+    int adjvex;//存放邻接的点在顶点表的下标，邻接点
+    struct ArcNode *nextarc;//指向Vi下一个邻接点的边结点
+    int weight;//权值
+}ArcNode;
+//顶点结点类型定义
+typedef struct VNode
+{
+    elemtype data; //存储顶点的名称或其相关信息
+    ArcNode *firstedge;//边表头指针
+}VNode;
+//图的邻接表数据类型
+typedef struct{
+    VNode vexlist[maxsize];//顶点表
+    int n,e;
+}ALGraph;
+//在图g中查找顶点v,存在顶点数组中的下标，不存在返回-1
+int locatevex(ALGraph g,elemtype v)
+{
+    int i;
+    for(i=0;i<g.n;i++)
+        if(g.vexlist[i].data==v)
+        return i;
+        else
+    return -1;
+}
+//打印图信息
+void print(ALGraph g)
+{
+    int i;
+    ArcNode *p;
+    printf("图的邻接表表示：");
+    for(i=0;i<g.n;i++){
+        printf("\n%4c",g.vexlist[i].data);
+        p=g.vexlist[i].firstedge;
+        while(p!=NULL){
+            printf("-->%d",p->adjvex);p=p->nextarc;
+        }
+    }
+    printf("\n");
+}
+void createALGraph(ALGraph *g){
+    int i,j,k;
+    elemtype v1,v2;
+    ArcNode *s;
+    printf("请输入图的顶点数及边数\n");
+    printf("顶点数 n=");scanf("%d",&g->n);
+    printf("边  数 e=");scanf("%d",&g->e);
+    printf("请输入图的顶点信息：\n");
+    getchar();
+    for(i=0;i<=g->n;i++){
+        scanf("%c",&g->vexlist[i].data); //构造顶点信息
+        g->vexlist[i].firstedge=NULL;
+    }
+    printf("请输入图的边的信息：\n");
+    for(k=0;k<g->e;k++)
+    {
+        printf("请输入第%d条边的两个端点下标：",k+1);
+        scanf("%c%c",&v1,&v2);
+        getchar();//输入一条边的两个顶点
+        i=locatevex(*g,v1);
+        j=locatevex(*g,v2);
+        if(i>=0&&j>=0){//建立有向图的邻接表
+            s=(ArcNode *)malloc(sizeof(ArcNode));
+            s->adjvex=j;
+            s->nextarc=g->vexlist[i].firstedge;
+            g->vexlist[i].firstedge=s;
+        }
+    }
+}
+int visited[maxsize];// 访问标志数组
+ //从第i个顶点出发递归地深度优先遍历图G
+void DFS(ALGraph g,int i)
+{
+    ArcNode *p;
+    printf("%3c",g.vexlist[i].data);//访问第i个项点
+    visited[i]=1;
+    p=g.vexlist[i].firstedge;
+    while(p!=NULL)    {
+        if(visited[p->adjvex]==0)
+          DFS(g,p->adjvex);//对i的尚未访问的邻接顶点j递归调用DFS
+        p=p->nextarc;
+    }
+}
+void DFStraverse(ALGraph  g) //对图G进行深度优先遍历
+{
+    int v;
+    for (v=0; v<g.n;v++)visited[v]=0; //初始化标志数组
+    for  (v=0; v<g.n;v++) //保证非连通图的遍历
+//从第v个顶点出发递归地深度优先遍历图G
+        if (!visited[v])DFS(g,v);        
+}
+//循环队列存储结构定义
+typedef struct  cirqueue
+{
+    elemtype  *data;      //队列存储空间的首地址
+    int front;         //队头位置：指向当前队头元素
+    int rear;    //队尾位置：指向当前队尾元素的下一位置
+}cirqueue;             // 循环队列
+//构造空队，如果成功，返回1，如果失败，返回0
+int initqueue(cirqueue *q)
+{
+    q->data=(elemtype *)malloc(queuesize*sizeof(cirqueue));
+    if (q->data==NULL)return 0; // 存储分配失败 
+    q->front=q->rear=0;    
+    return 1;
+ }
+// 插入元素e为Q的新的队尾元素 ,如果成功，返回1，如果失败，返回0
+int enqueue (cirqueue *q,elemtype e)
+{ 
+    if ((q->rear+1) % queuesize == q->front) 
+        return 0; //队列满
+    q->data[q->rear] = e;
+    q->rear = (q->rear+1) % queuesize; //队尾后移一位
+    return 1;
+}
+//若队列不空，则删除Q的队头元素，用e返回其值,并返回1；否则返回0
+int dequeue (cirqueue *q,int *e) 
+{
+    if (q->front == q->rear)  return 0; //队列为空
+    *e = q->data[q->front];
+    q->front = (q->front+1) %queuesize; //队头后移一位
+    return 1;
+}
+//若栈不空，则用e返回队头元素,并返回1；否则返回0
+int getfront(cirqueue q,elemtype *e)
+{
+    if (q.front == q.rear)  return 0; //队列为空
+    *e=q.data[q.front];
+    return  1;
+ }
+//若队列为空栈，则返回1，否则返回0 
+int queueempty(cirqueue q)//栈非空
+{ 
+    if(q.front == q.rear)return 1; //队列为空
+    else return 0;
+}
+//返回队列的元素个数，即队列的长度
+int queuelength(cirqueue q)
+{ 
+    return (q.rear-q.front+queuesize) % queuesize;
+}
+//利用邻接矩阵实现连通图的广度优先搜索遍历
+int BFSvisited[maxsize];
+cirqueue q;
+//从第k个顶点出发广度优先遍历图G,G以邻接矩阵表示
+void BFS(ALGraph g,int k){
+    int i;
+    ArcNode *p;
+    initqueue(&q);//初始化队列
+    printf("%3c",g.vexlist[k].data);//访问第k个项点
+    visited[k]=1;    
+    enqueue(&q,k);//第k个顶点进队
+    while(queueempty(q)==0) {//队列非空
+        dequeue(&q,&i);
+        p=g.vexlist[i].firstedge;//获取第1个邻接点
+        while(p!=NULL){
+            if(visited[p->adjvex]==0){//访问第i个顶点的末曾访问的顶点
+                printf("%3c",g.vexlist[p->adjvex].data);
+                visited[p->adjvex]=1;
+                enqueue(&q,p->adjvex);//第k个顶点进队
+            }
+            p=p->nextarc;
+        }        
+    }
+}
+void BFStraverse(ALGraph  g) //对图G进行广度优先遍历
+{
+    int v;
+    for (v=0; v<g.n;v++) //初始化标志数组
+        visited[v]=0; 
+    for  (v=0; v<g.n;v++) //保证非连通图的遍历
+        if (!visited[v])BFS(g,v); //从第v个顶点出发递归地深度优先遍历图G
+}
+int main()
+{
+    ALGraph g;
+    createALGraph(&g);
+    print(g);
+    printf("\n");
+    printf("图的深度优先遍历序列：\n");
+    DFStraverse(g);
+    printf("\n");
+    printf("图的广度优先遍历序列：\n");
+    BFStraverse(g);
+    printf("\n");
+    return 0;
+}
